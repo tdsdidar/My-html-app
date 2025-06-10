@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Session Counter - Enhanced</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #1a1a2e;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 1rem;
+            margin-bottom: 32px;
+            font-weight: 400;
+        }
+
+        .input-section {
+            margin-bottom: 32px;
+        }
+
+        .input-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper::before {
+            content: '$';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 16px 16px 16px 32px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-group input[type="number"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .progress-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .session-step {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .total-profit {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .total-profit.positive {
+            color: #10b981;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .total-profit.negative {
+            color: #ef4444;
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .total-profit.zero {
+            color: #64748b;
+        }
+
+        .estimated-trades {
+            text-align: center;
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(-2px);
+        }
+
+        .btn.win {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn.loss {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn.reset {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            width: 100%;
+            box-shadow: 0 8px 16px rgba(100, 116, 139, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .message {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 16px;
+            font-weight: 600;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            color: #065f46;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            color: #7f1d1d;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .total-profit {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Custom number input styling */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💎 Binary Session</h1>
+        <p class="subtitle">Track your trading journey with style</p>
+
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="startingCapital">Starting Capital</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="startingCapital" value="1000.00" min="0.01" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="targetAmount">Target Profit</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="targetAmount" value="100.00" min="0.01" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="stake">Trade Amount</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="stake" value="10.00" min="0.01" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Stake % of Capital</div>
+                    <div class="stat-value" id="stakePercentOfCapital">0.00%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Target % of Capital</div>
+                    <div class="stat-value" id="targetProfitPercentOfCapital">0.00%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="session-step">Step <span id="sessionStep">1</span></span>
+                <div class="estimated-trades">
+                    <span id="estimatedTrades">N/A</span> trades to target
+                </div>
+            </div>
+            
+            <div class="total-profit zero" id="totalProfit">$0.00</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn win" id="winButton">
+                <span>🚀 Win</span>
+            </button>
+            <button class="btn loss" id="lossButton">
+                <span>💥 Loss</span>
+            </button>
+        </div>
+
+        <button class="btn reset" id="resetButton">
+            <span>🔄 Reset Session</span>
+        </button>
+
+        <div id="targetMessage" class="message" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const sessionStepSpan = document.getElementById('sessionStep');
+        const totalProfitSpan = document.getElementById('totalProfit');
+        const stakeInput = document.getElementById('stake');
+        const winButton = document.getElementById('winButton');
+        const lossButton = document.getElementById('lossButton');
+        const resetButton = document.getElementById('resetButton');
+        const targetAmountInput = document.getElementById('targetAmount');
+        const startingCapitalInput = document.getElementById('startingCapital');
+        const targetMessageDiv = document.getElementById('targetMessage');
+        const stakePercentOfCapitalDisplay = document.getElementById('stakePercentOfCapital');
+        const targetProfitPercentOfCapitalDisplay = document.getElementById('targetProfitPercentOfCapital');
+        const estimatedTradesSpan = document.getElementById('estimatedTrades');
+
+        // Initialize variables
+        let currentSessionStep = 1;
+        let currentTotalProfit = 0;
+        let targetAchieved = false;
+
+        // --- Calculation Functions ---
+        function calculateStakePercentOfCapital() {
+            const capital = parseFloat(startingCapitalInput.value);
+            const currentStake = parseFloat(stakeInput.value);
+
+            if (isNaN(capital) || capital <= 0 || isNaN(currentStake) || currentStake <= 0) {
+                return 0;
+            }
+            return (currentStake / capital) * 100;
+        }
+
+        function calculateTargetProfitPercentOfCapital() {
+            const capital = parseFloat(startingCapitalInput.value);
+            const target = parseFloat(targetAmountInput.value);
+
+            if (isNaN(capital) || capital <= 0 || isNaN(target) || target <= 0) {
+                return 0;
+            }
+            return (target / capital) * 100;
+        }
+
+        function calculateEstimatedTrades() {
+            const target = parseFloat(targetAmountInput.value);
+            const currentStake = parseFloat(stakeInput.value);
+
+            if (isNaN(target) || target <= 0 || isNaN(currentStake) || currentStake <= 0) {
+                return 'N/A';
+            }
+
+            const profitNeeded = target - currentTotalProfit;
+
+            if (profitNeeded <= 0) {
+                return '🎯 Achieved!';
+            }
+
+            return Math.ceil(profitNeeded / currentStake);
+        }
+
+        function checkTargetAchieved() {
+            const target = parseFloat(targetAmountInput.value);
+            if (isNaN(target) || target <= 0) {
+                targetMessageDiv.style.display = 'none';
+                targetAchieved = false;
+                return;
+            }
+
+            if (currentTotalProfit >= target && !targetAchieved) {
+                targetMessageDiv.innerHTML = `
+                    <span style="font-size: 1.5rem;">🎉</span><br>
+                    <strong>TARGET ACHIEVED!</strong><br>
+                    Congratulations on reaching $${target.toFixed(2)}!
+                `;
+                targetMessageDiv.className = 'message success pulse';
+                targetMessageDiv.style.display = 'block';
+                targetAchieved = true;
+                winButton.disabled = true;
+                lossButton.disabled = true;
+                
+                // Add celebration effect
+                setTimeout(() => {
+                    targetMessageDiv.classList.remove('pulse');
+                }, 4000);
+                
+            } else if (currentTotalProfit < target && targetAchieved) {
+                targetMessageDiv.style.display = 'none';
+                targetAchieved = false;
+                winButton.disabled = false;
+                lossButton.disabled = false;
+            } else if (currentTotalProfit < target && !targetAchieved) {
+                targetMessageDiv.style.display = 'none';
+            }
+        }
+
+        // --- Update Display Function ---
+        function updateDisplay() {
+            // Update percentage displays with animation
+            const stakePercent = calculateStakePercentOfCapital();
+            const targetPercent = calculateTargetProfitPercentOfCapital();
+            
+            stakePercentOfCapitalDisplay.textContent = `${stakePercent.toFixed(2)}%`;
+            targetProfitPercentOfCapitalDisplay.textContent = `${targetPercent.toFixed(2)}%`;
+
+            // Session Progress Display
+            sessionStepSpan.textContent = currentSessionStep;
+            totalProfitSpan.textContent = `$${currentTotalProfit.toFixed(2)}`;
+
+            // Update profit color with smooth transition
+            totalProfitSpan.classList.remove('positive', 'negative', 'zero');
+            if (currentTotalProfit > 0) {
+                totalProfitSpan.classList.add('positive');
+            } else if (currentTotalProfit < 0) {
+                totalProfitSpan.classList.add('negative');
+            } else {
+                totalProfitSpan.classList.add('zero');
+            }
+
+            // Estimated Trades to Target
+            estimatedTradesSpan.textContent = calculateEstimatedTrades();
+
+            // Check if target is achieved
+            checkTargetAchieved();
+        }
+
+        // --- Event Handlers ---
+        function handleTrade(isWin) {
+            const stakeAmount = parseFloat(stakeInput.value);
+
+            if (isNaN(stakeAmount) || stakeAmount <= 0) {
+                targetMessageDiv.innerHTML = `
+                    <span style="font-size: 1.2rem;">⚠️</span><br>
+                    Please enter a valid trade amount
+                `;
+                targetMessageDiv.className = 'message error';
+                targetMessageDiv.style.display = 'block';
+                stakeInput.focus();
+                return;
+            }
+            
+            // Clear any previous messages
+            if (!targetAchieved) {
+                targetMessageDiv.style.display = 'none';
+            }
+
+            // Add visual feedback
+            const button = isWin ? winButton : lossButton;
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+
+            if (isWin) {
+                currentTotalProfit += stakeAmount;
+            } else {
+                currentTotalProfit -= stakeAmount;
+            }
+            
+            currentSessionStep++;
+            updateDisplay();
+        }
+
+        function resetCounter() {
+            currentSessionStep = 1;
+            currentTotalProfit = 0;
+            targetAchieved = false;
+            winButton.disabled = false;
+            lossButton.disabled = false;
+            targetMessageDiv.style.display = 'none';
+
+            // Add reset animation
+            totalProfitSpan.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                totalProfitSpan.style.transform = '';
+            }, 200);
+
+            updateDisplay();
+        }
+
+        // --- Event Listeners ---
+        winButton.addEventListener('click', () => handleTrade(true));
+        lossButton.addEventListener('click', () => handleTrade(false));
+        resetButton.addEventListener('click', resetCounter);
+
+        // Real-time updates on input changes
+        [startingCapitalInput, targetAmountInput, stakeInput].forEach(input => {
+            input.addEventListener('input', updateDisplay);
+            
+            // Add focus/blur effects
+            input.addEventListener('focus', function() {
+                this.parentElement.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.parentElement.style.transform = '';
+            });
+        });
+
+        // Initial display update
+        updateDisplay();
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'w' || e.key === 'W') {
+                if (!winButton.disabled) handleTrade(true);
+            } else if (e.key === 'l' || e.key === 'L') {
+                if (!lossButton.disabled) handleTrade(false);
+            } else if (e.key === 'r' || e.key === 'R') {
+                resetCounter();
+            }
+        });
+    </script>
+</body>
+</html>
